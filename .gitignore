@@ -12,5 +12,11 @@
 # Ignore Python cache directories
 __pycache__/
 
-# Ignore the data directory
+# Ignore the raw data
 data/
+
+# Ignore the raw data
+processed_data/
+
+# Ignore the helper functions
+helper/
