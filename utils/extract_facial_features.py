@@ -10,6 +10,22 @@ class ExtractFacialFeatures():
         self.visualize = visualize
         self.data_path = data_path
 
+        # Define the standard edge connections based on dlib's 68-point landmarks
+        self.edges = [
+            (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9), (9, 10),
+            (10, 11), (11, 12), (12, 13), (13, 14), (14, 15), (15, 0),  # Jawline
+
+            (17, 18), (18, 19), (19, 20), (20, 21), (21, 22),  # Left eyebrow
+            (23, 24), (24, 25), (25, 26), (26, 27), (27, 28),  # Right eyebrow
+
+            (36, 37), (37, 38), (38, 39), (39, 40), (40, 41),  # Left eye
+            (42, 43), (43, 44), (44, 45), (45, 46), (46, 47),  # Right eye
+
+            (48, 49), (49, 50), (50, 51), (51, 52), (52, 53), (53, 54),  # Outer lip
+            (54, 55), (55, 56), (56, 57), (57, 58), (58, 59), (59, 60),  # Outer lip closing
+            (60, 61), (61, 62), (62, 63), (63, 64), (64, 65), (65, 66), (66, 67),  # Inner lip
+        ]
+
     def extract_and_visualize_landmarks(self, image_path) -> np.array:
         # Load the image
         img = cv2.imread(image_path)
@@ -38,6 +54,12 @@ class ExtractFacialFeatures():
             normalized_landmarks = self.normalize_landmarks(landmarks_coords)
             # normalized_landmarks = landmarks_coords
 
+            # Create bidirectional edges for an undirected graph
+            edge_index = []
+            for start, end in self.edges:
+                edge_index.append([start, end])
+                edge_index.append([end, start])  # for undirected connections
+
             if self.visualize:
                 # Visualize the landmarks on the image
                 for (x, y) in normalized_landmarks:
@@ -52,7 +74,7 @@ class ExtractFacialFeatures():
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
 
-            return normalized_landmarks
+            return normalized_landmarks, edge_index
 
     def normalize_landmarks(self, landmarks_coords):
         # Assuming the first 6 landmarks are the corners of the eyes and mouth
@@ -98,11 +120,11 @@ class ExtractFacialFeatures():
         # take data_path and create a pickle file
 
         # Extract facial lanmdmarks features
-        landmarks = self.extract_and_visualize_landmarks(self.data_path)
+        landmarks, edge_index = self.extract_and_visualize_landmarks(self.data_path)
         if landmarks is not None:
             input_data = self.prepare_data(landmarks)
             print(f"Max features in this image : {input_data.shape}")
         else:
             input_data = None
             print("No face detected.")
-        return input_data
+        return input_data, edge_index
