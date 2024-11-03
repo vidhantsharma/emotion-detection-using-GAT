@@ -20,3 +20,6 @@ processed_data/
 
 # Ignore the helper functions
 helper/
+
+# Ignore Stored Model
+*.pt

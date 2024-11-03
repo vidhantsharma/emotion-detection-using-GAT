@@ -23,13 +23,41 @@ class FacialLandmarkDataloader:
         self.batch_size = batch_size
         self.shuffle = shuffle
 
-    def get_dataloader(self):
+    def get_train_dataloader(self):
         """
         Creates and returns a DataLoader instance for the dataset.
 
         Returns:
             DataLoader: PyTorch DataLoader instance for the dataset.
         """
+        # Initialize the dataset
+        dataset = FacialLandmarkDataset(self.data_path, self.viz, self.num_features, self.store_path, self.preprocess_data)
+        
+        # Create and return the DataLoader
+        return DataLoader(dataset, batch_size=self.batch_size, shuffle=self.shuffle)
+    
+    def get_validation_dataloader(self):
+        """
+        Creates and returns a DataLoader instance for the dataset.
+
+        Returns:
+            DataLoader: PyTorch DataLoader instance for the dataset.
+        """
+        # TODO separate train, validation, and test data
+        # Initialize the dataset
+        dataset = FacialLandmarkDataset(self.data_path, self.viz, self.num_features, self.store_path, self.preprocess_data)
+        
+        # Create and return the DataLoader
+        return DataLoader(dataset, batch_size=self.batch_size, shuffle=self.shuffle)
+    
+    def get_test_dataloader(self):
+        """
+        Creates and returns a DataLoader instance for the dataset.
+
+        Returns:
+            DataLoader: PyTorch DataLoader instance for the dataset.
+        """
+        # TODO separate train, validation, and test data
         # Initialize the dataset
         dataset = FacialLandmarkDataset(self.data_path, self.viz, self.num_features, self.store_path, self.preprocess_data)
         

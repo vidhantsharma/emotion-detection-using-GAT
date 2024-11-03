@@ -14,28 +14,27 @@ class StoreData:
         os.makedirs(self.store_path, exist_ok=True)
 
     def store_data(self) -> None:
-        # Validate the number of features; skip if not enough
-        if len(self.facial_landmarks) < self.num_features:
-            print(f"Skipping data point {self.index} - insufficient features")
-            return
-
-        print(f"Number of features extracted in this image : {self.num_features}")
-        # Trim features if there are more than required (128 onwards are distance features)
-        if len(self.facial_landmarks) > self.num_features:
-            facial_landmarks = self.facial_landmarks[:self.num_features]
-        else:
-            facial_landmarks = self.facial_landmarks
-
-        # Prepare data to store
-        data = {
-            "facial_landmarks": facial_landmarks,
-            "emotion": self.emotion,
-            "edge_index": self.edge_index
-        }
 
         # Unique file naming based on index and emotion label
         file_name = f"emotion_data_{self.emotion}_{self.filename}.pkl"
         file_path = os.path.join(self.store_path, file_name)
+
+        # Validate the number of features; skip if not enough
+        if len(self.facial_landmarks) < self.num_features:
+            print(f"Skipping data point {file_name} - insufficient features")
+            return
+
+        # Trim features if there are more than required
+        if len(self.facial_landmarks) > self.num_features:
+            print(f"Skipping data point {file_name} - extra unknown features")
+            return
+
+        # Prepare data to store
+        data = {
+            "facial_landmarks": self.facial_landmarks,
+            "emotion": self.emotion,
+            "edge_index": self.edge_index
+        }
 
         # Store data in a pickle file
         with open(file_path, "wb") as f:

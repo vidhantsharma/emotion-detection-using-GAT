@@ -108,11 +108,9 @@ class ExtractFacialFeatures():
         # Calculate relative distances of each landmark to the center point
         relative_positions = landmark_coords - center_point
 
-        # Calculate distances (optional, can be used as features)
-        distances = np.linalg.norm(relative_positions, axis=1)
-
         # Create input data: concatenate relative positions and distances
-        input_data = np.concatenate((relative_positions.flatten(), distances))
+        # input_data = relative_positions.flatten()
+        input_data = relative_positions
 
         return input_data
 
@@ -123,7 +121,6 @@ class ExtractFacialFeatures():
         landmarks, edge_index = self.extract_and_visualize_landmarks(self.data_path)
         if landmarks is not None:
             input_data = self.prepare_data(landmarks)
-            print(f"Max features in this image : {input_data.shape}")
         else:
             input_data = None
             print("No face detected.")
