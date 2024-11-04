@@ -7,7 +7,7 @@ from PIL import Image
 from torchvision import transforms
 
 class FacialLandmarkDataset(Dataset):
-    def __init__(self, data_path, visualize, num_features, store_path, preprocess_data):
+    def __init__(self, data_path, split, visualize, num_features, store_path, preprocess_data):
         self.num_features = num_features
         self.emotion_mapping = {
             "anger" : 1,
@@ -20,18 +20,19 @@ class FacialLandmarkDataset(Dataset):
             "surprise" : 8,
         }
         self.data_path = data_path
+        self.split = split
         self.transform = transforms.Compose([
             transforms.Grayscale(),  # Ensures the image is grayscale
             transforms.ToTensor()    # Converts image to a tensor
         ])
         if(preprocess_data):
             # Initialize Utils class with parsed arguments
-            utils = Utils(data_path=self.data_path, visualize=visualize, num_features=num_features, store_path=store_path, emotion_mapping=self.emotion_mapping)
+            utils = Utils(data_path=self.data_path, split = self.split, visualize=visualize, num_features=num_features, store_path=store_path, emotion_mapping=self.emotion_mapping)
             # Call methods on the utils instance
             utils.process_pipeline()
 
-        self.file_paths = [os.path.join(store_path, f) for f in os.listdir(store_path) if f.endswith('.pkl')] 
-        self.file_names = [f for f in os.listdir(store_path) if f.endswith('.pkl')]
+        self.file_paths = [os.path.join(store_path, split, f) for f in os.listdir(os.path.join(store_path, split)) if f.endswith('.pkl')] 
+        self.file_names = [f for f in os.listdir(os.path.join(store_path, split)) if f.endswith('.pkl')]
 
     def __len__(self):
         return len(self.file_paths)
@@ -56,7 +57,7 @@ class FacialLandmarkDataset(Dataset):
         # Get the corresponding emotion string from the mapping
         image_emotion = next((emotion for emotion, number in self.emotion_mapping.items() if number == image_emotion_int), None)
 
-        full_image_path = os.path.join(self.data_path, image_emotion, image_filename)
+        full_image_path = os.path.join(self.data_path, image_emotion, self.split, image_filename)
 
         # Check if the image file exists
         if os.path.exists(full_image_path):

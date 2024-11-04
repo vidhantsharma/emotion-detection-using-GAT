@@ -6,18 +6,19 @@ import os
 from tqdm import tqdm
 
 class Utils:
-    def __init__(self, data_path, visualize, num_features, store_path, emotion_mapping):
+    def __init__(self, data_path, split, visualize, num_features, store_path, emotion_mapping):
         self.data_path = data_path
         self.visualize = visualize
         self.num_features = num_features
         self.store_path = store_path
         self.emotion_mapping = emotion_mapping
+        self.split = split
 
     def process_pipeline(self):
         # Iterate over each emotion subdirectory in data_path
         for emotion_label in os.listdir(self.data_path):
-            emotion_path = os.path.join(self.data_path, emotion_label)
-            if not os.path.isdir(emotion_path):
+            emotion_split_path = os.path.join(self.data_path, emotion_label, self.split)
+            if not os.path.isdir(emotion_split_path):
                 continue  # Skip non-directory files
 
             # Map the emotion label to an integer
@@ -27,12 +28,12 @@ class Utils:
                 continue
 
             # Get all image files in the emotion directory
-            image_files = [file_name for file_name in os.listdir(emotion_path) if os.path.isfile(os.path.join(emotion_path, file_name))]
+            image_files = [file_name for file_name in os.listdir(emotion_split_path) if os.path.isfile(os.path.join(emotion_split_path, file_name))]
 
             # Use tqdm to create a progress bar
             with tqdm(total=len(image_files), desc=f'Processing {emotion_label}', unit='image') as pbar:
                 for _, file_name in enumerate(image_files):
-                    file_path = os.path.join(emotion_path, file_name)
+                    file_path = os.path.join(emotion_split_path, file_name)
 
                     # Extract landmarks from the image
                     landmarks, edge_index = self.extract_facial_features(file_path)
@@ -60,5 +61,5 @@ class Utils:
 
 
     def store_feature_data(self, facial_landmarks, edge_index, emotion, filename):
-        store_data = StoreData(self.num_features, facial_landmarks, edge_index, emotion, self.store_path, filename)
+        store_data = StoreData(self.num_features, facial_landmarks, edge_index, emotion, self.store_path, self.split, filename)
         store_data.store_data()

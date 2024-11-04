@@ -15,6 +15,9 @@ __pycache__/
 # Ignore the raw data
 data/
 
+# ignore the original raw data
+data - original/
+
 # Ignore the raw data
 processed_data/
 

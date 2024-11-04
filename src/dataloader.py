@@ -31,7 +31,7 @@ class FacialLandmarkDataloader:
             DataLoader: PyTorch DataLoader instance for the dataset.
         """
         # Initialize the dataset
-        dataset = FacialLandmarkDataset(self.data_path, self.viz, self.num_features, self.store_path, self.preprocess_data)
+        dataset = FacialLandmarkDataset(self.data_path, 'train', self.viz, self.num_features, self.store_path, self.preprocess_data)
         
         # Create and return the DataLoader
         return DataLoader(dataset, batch_size=self.batch_size, shuffle=self.shuffle)
@@ -45,7 +45,7 @@ class FacialLandmarkDataloader:
         """
         # TODO separate train, validation, and test data
         # Initialize the dataset
-        dataset = FacialLandmarkDataset(self.data_path, self.viz, self.num_features, self.store_path, self.preprocess_data)
+        dataset = FacialLandmarkDataset(self.data_path, 'val', self.viz, self.num_features, self.store_path, self.preprocess_data)
         
         # Create and return the DataLoader
         return DataLoader(dataset, batch_size=self.batch_size, shuffle=self.shuffle)
@@ -59,7 +59,7 @@ class FacialLandmarkDataloader:
         """
         # TODO separate train, validation, and test data
         # Initialize the dataset
-        dataset = FacialLandmarkDataset(self.data_path, self.viz, self.num_features, self.store_path, self.preprocess_data)
+        dataset = FacialLandmarkDataset(self.data_path, 'test', self.viz, self.num_features, self.store_path, self.preprocess_data)
         
         # Create and return the DataLoader
         return DataLoader(dataset, batch_size=self.batch_size, shuffle=self.shuffle)

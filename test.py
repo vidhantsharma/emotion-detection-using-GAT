@@ -1,8 +1,10 @@
 import torch
 import argparse
+from sklearn.metrics import confusion_matrix, f1_score  # Import confusion matrix and F1 score
+import numpy as np
 from src.dataloader import FacialLandmarkDataloader
 from src.model import EmotionClassifier
-from tqdm import tqdm  # Import tqdm for progress bar
+from tqdm import tqdm
 
 # Define a function to handle argument parsing
 def parse_args():
@@ -41,14 +43,15 @@ if __name__ == "__main__":
 
     total_correct = 0
     total_samples = 0
+    all_labels = []
+    all_predictions = []
 
     with torch.no_grad():  # Disable gradient calculation for testing
-        # Wrap the test loader with tqdm for progress tracking
         for images, features, edge_index, labels in tqdm(test_loader, desc="Testing"):
             images = images.float().to(device)  # Move images to the correct device
             features = features.float().to(device)  # Move features to the correct device
             edge_index = edge_index.to(device)  # Move edge index to the correct device
-            labelsZeroIndex = labels - 1  # Sub 1 to make it 0-indexed
+            labelsZeroIndex = labels - 1  # Subtract 1 to make labels 0-indexed
             labelsZeroIndex = labelsZeroIndex.long().to(device)  # Ensure labels are long tensors
 
             # Forward pass
@@ -57,6 +60,10 @@ if __name__ == "__main__":
             # Get predictions
             _, predicted = torch.max(outputs, 1)
 
+            # Store labels and predictions for confusion matrix and F1 score
+            all_labels.extend(labelsZeroIndex.cpu().numpy())
+            all_predictions.extend(predicted.cpu().numpy())
+
             # Calculate total correct and samples
             total_correct += (predicted == labelsZeroIndex).sum().item()
             total_samples += labels.size(0)
@@ -64,3 +71,11 @@ if __name__ == "__main__":
     # Calculate accuracy
     accuracy = total_correct / total_samples * 100
     print(f'Accuracy of the model on the test dataset: {accuracy:.2f}%')
+
+    # Calculate confusion matrix and F1 score
+    conf_matrix = confusion_matrix(all_labels, all_predictions)
+    f1 = f1_score(all_labels, all_predictions, average='weighted')  # Weighted for class imbalance
+
+    print("Confusion Matrix:")
+    print(conf_matrix)
+    print(f'F1 Score: {f1:.2f}')
