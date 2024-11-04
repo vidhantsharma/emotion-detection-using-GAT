@@ -17,5 +17,5 @@ This project will focus on emotion detection. The dataset used is from CK+.
 2. Helper function "createDataSplit.py" is provided for doing this. You just need to provide the data path to it which contains images in this structure
         -data
             -emotion
-3. use "train.py" to train the model. The checkpoint will be stored by the name of "final_model.pt"
+3. use "train.py" to train the model. The checkpoint will be stored by the name of "best_model.pt"
 4. The model accuracy can then be tested using "test.py"

@@ -50,7 +50,7 @@ if __name__ == "__main__":
     early_stopping = EarlyStopping(patience=5, verbose=True)  # Set patience as needed
 
     try:
-        for epoch in range(10):  # Run for a number of epochs
+        for epoch in range(50):  # Run for a number of epochs
             # Training phase
             model.train()
             for images, features, edge_index, labels in train_loader:
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             print(f'Epoch: {epoch}, Validation Loss: {val_loss}')
 
             # Check for early stopping
-            if early_stopping(val_loss):
+            if early_stopping(val_loss, model=model):
                 break
 
     except KeyboardInterrupt:

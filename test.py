@@ -10,7 +10,7 @@ from tqdm import tqdm
 def parse_args():
     parser = argparse.ArgumentParser(description='Testing script for Emotion Classifier')
     parser.add_argument('--data_path', type=str, required=False, default=r"data")
-    parser.add_argument('--model_path', type=str, required=False, default='final_model.pt', help='trained model path')
+    parser.add_argument('--model_path', type=str, required=False, default='best_model.pt', help='trained model path')
     parser.add_argument('--viz', action='store_true', help='Enable visualization of the process')
     parser.add_argument('--num_nodes', type=int, required=False, default=68)
     parser.add_argument('--num_classes', type=int, required=False, default=8)
