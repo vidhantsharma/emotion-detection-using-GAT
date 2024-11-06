@@ -1,46 +1,93 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision import models
 from torch_geometric.nn import GATConv
+
+class HourglassBlock(nn.Module):
+    def __init__(self, in_channels, depth=4):
+        super(HourglassBlock, self).__init__()
+        self.depth = depth
+        self.downsample_layers = nn.ModuleList()
+        self.upsample_layers = nn.ModuleList()
+        
+        # Downsample layers
+        for _ in range(depth):
+            self.downsample_layers.append(nn.Sequential(
+                nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=2, padding=1),
+                nn.BatchNorm2d(in_channels),
+                nn.ReLU()
+            ))
+        
+        # Upsample layers
+        for _ in range(depth):
+            self.upsample_layers.append(nn.Sequential(
+                nn.ConvTranspose2d(in_channels, in_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+                nn.BatchNorm2d(in_channels),
+                nn.ReLU()
+            ))
+
+    def forward(self, x):
+        skip_connections = []
+        
+        # Downsampling path
+        for down in self.downsample_layers:
+            x = down(x)
+            skip_connections.append(x)
+        
+        # Bottleneck
+        x = self.downsample_layers[-1](x)
+        
+        # Upsampling path with skip connections
+        for up in self.upsample_layers:
+            skip_connection = skip_connections.pop()
+            # Ensure skip_connection matches the size of x before addition
+            if skip_connection.size() != x.size():
+                skip_connection = F.interpolate(skip_connection, size=x.size()[2:], mode='bilinear', align_corners=False)
+            x = up(x + skip_connection)
+        
+        return x
+
 
 class EmotionClassifier(nn.Module):
     def __init__(self, num_classes, num_landmarks=136, gat_out_dim=64):
         super(EmotionClassifier, self).__init__()
         
-        # ResNet Backbone
-        self.resnet = models.resnet18(pretrained=True)
-        self.resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-        self.resnet.fc = nn.Identity()
+        # Hourglass Backbone
+        self.hourglass = HourglassBlock(in_channels=64, depth=4)
+        
+        # Initial convolution for grayscale images
+        self.initial_conv = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3),
+            nn.BatchNorm2d(64),
+            nn.ReLU()
+        )
         
         # Graph Network (Multi-Head GAT)
-        self.gat1 = GATConv(2, gat_out_dim, heads=4, concat=True)  # Input features are (68, 2)
+        self.gat1 = GATConv(2, gat_out_dim, heads=4, concat=True)
         self.gat2 = GATConv(gat_out_dim * 4, gat_out_dim, heads=4, concat=True)
         
         # Dropout for regularization
         self.dropout = nn.Dropout(p=0.5)
         
         # Final classifier
-        self.fc_out = nn.Linear(gat_out_dim * 4 + 512, num_classes)  # 512 for image features from ResNet
+        self.fc_out = nn.Linear(gat_out_dim * 4 + 64, num_classes)
 
     def forward(self, image, landmarks, edge_index):
-        # Image features
-        image_features = self.resnet(image)  # Shape: (batch_size, 512)
-        
+        # Image features through Hourglass network
+        x = self.initial_conv(image)
+        image_features = self.hourglass(x)
+        image_features = F.adaptive_max_pool2d(image_features, (1, 1)).view(image_features.size(0), -1)
         # Process each item in the batch separately for GAT
         gat_outputs = []
         for i in range(landmarks.size(0)):
-            # Copy edge_index for individual graph processing
-            individual_edge_index = edge_index[i]  # Get edge index for the specific batch item
-            
-            # Pass through GAT layers for each sample in batch
-            x = F.relu(self.gat1(landmarks[i], individual_edge_index))  # Input: (68, 2)
+            individual_edge_index = edge_index[i]
+            x = F.relu(self.gat1(landmarks[i], individual_edge_index))
             x = self.dropout(F.relu(self.gat2(x, individual_edge_index)))
-            gat_outputs.append(x.mean(dim=0, keepdim=True))  # Global mean pooling for each graph
+            gat_outputs.append(x.mean(dim=0, keepdim=True))
             
         # Stack the processed landmark features
-        gat_outputs = torch.cat(gat_outputs, dim=0)  # Shape: (batch_size, gat_out_dim)
-
+        gat_outputs = torch.cat(gat_outputs, dim=0)
+        
         # Combine GAT output with image features
         x = torch.cat([gat_outputs, image_features], dim=1)
 

@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument('--data_path', type=str, required=False, default=r"data")
     parser.add_argument('--viz', action='store_true', help='Enable visualization of the process')
     parser.add_argument('--num_nodes', type=int, required=False, default=68, help="number of landmarks")
-    parser.add_argument('--num_classes', type=int, required=False, default=8, help="number of emotions")
+    parser.add_argument('--num_classes', type=int, required=False, default=6, help="number of emotions")
     parser.add_argument('--store_path', type=str, required=False, default=r"processed_data")
     parser.add_argument('--batch_size', type=int, required=False, default=8)
     parser.add_argument('--preprocess_data', type=bool, required=False, default=False, help="keep true if you want to preprocess the data")
@@ -21,6 +21,29 @@ def parse_args():
     
     args = parser.parse_args()
     return args
+
+import torch
+import torch.nn.functional as F
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=1, gamma=2, num_classes=8):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha  # balancing factor for the classes
+        self.gamma = gamma  # focusing parameter to reduce the loss for well-classified examples
+        self.num_classes = num_classes
+
+    def forward(self, inputs, targets):
+        # Compute Cross-Entropy Loss
+        ce_loss = F.cross_entropy(inputs, targets, reduction='none')
+
+        # Calculate the probabilities (for each class)
+        pt = torch.exp(-ce_loss)
+
+        # Focal loss formula
+        fl_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
+
+        # Return the mean loss
+        return fl_loss.mean()
 
 if __name__ == "__main__":
     args = parse_args()
@@ -43,11 +66,12 @@ if __name__ == "__main__":
 
     model.train()  # Set the model to training mode
 
-    criterion = nn.CrossEntropyLoss()  # Define the loss criterion
-    # You may want to define an optimizer here as well
+    # defining loss
+    criterion = FocalLoss(alpha=1, gamma=2, num_classes=args.num_classes)
+    # defining optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-    early_stopping = EarlyStopping(patience=5, verbose=True)  # Set patience as needed
+    # defining early_stopping criteria
+    early_stopping = EarlyStopping(patience=5, verbose=True)
 
     try:
         for epoch in range(50):  # Run for a number of epochs

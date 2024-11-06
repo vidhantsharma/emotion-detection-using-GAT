@@ -24,5 +24,8 @@ processed_data/
 # Ignore the helper functions
 helper/
 
-# Ignore Stored Model
+# Ignore all .pt files
 *.pt
+
+# But don't ignore best_model.pt
+!best_model.pt
