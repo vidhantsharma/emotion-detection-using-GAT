@@ -67,7 +67,8 @@ if __name__ == "__main__":
     model.train()  # Set the model to training mode
 
     # defining loss
-    criterion = FocalLoss(alpha=1, gamma=2, num_classes=args.num_classes)
+    # criterion = FocalLoss(alpha=1, gamma=2, num_classes=args.num_classes)
+    criterion = nn.CrossEntropyLoss()  # Using CrossEntropyLoss
     # defining optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # defining early_stopping criteria

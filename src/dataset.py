@@ -36,20 +36,24 @@ class FacialLandmarkDataset(Dataset):
         self.file_paths = [os.path.join(store_path, split, f) for f in os.listdir(os.path.join(store_path, split)) if f.endswith('.pkl')] 
         self.file_names = [f for f in os.listdir(os.path.join(store_path, split)) if f.endswith('.pkl')]
 
-        # Calculate the class distribution from filenames
-        self.class_distribution = Counter([file_name.split('_')[2] for file_name in self.file_names])  # Extract class labels from filenames
-        
-        # Determine the maximum class frequency
-        max_class_freq = max(self.class_distribution.values())
+        if self.split == 'train':
+            # Calculate the class distribution from filenames
+            self.class_distribution = Counter([file_name.split('_')[2] for file_name in self.file_names])  # Extract class labels from filenames
+            
+            # Determine the maximum class frequency
+            max_class_freq = max(self.class_distribution.values())
 
-        # Oversample minority classes
-        self.oversample_indices = []
-        for i, file_name in enumerate(self.file_names):
-            class_label = file_name.split('_')[2]
-            # Calculate how many times to sample this class based on its frequency
-            num_oversamples = max_class_freq // self.class_distribution[class_label]
-            for _ in range(num_oversamples):
-                self.oversample_indices.append(i)
+            # Oversample minority classes
+            self.oversample_indices = []
+            for i, file_name in enumerate(self.file_names):
+                class_label = file_name.split('_')[2]
+                # Calculate how many times to sample this class based on its frequency
+                num_oversamples = max_class_freq // self.class_distribution[class_label]
+                for _ in range(num_oversamples):
+                    self.oversample_indices.append(i)
+        else:
+            # For validation or test, use the indices directly
+            self.oversample_indices = list(range(len(self.file_names)))
 
     def __len__(self):
         return len(self.oversample_indices)  # Return the oversampled length
