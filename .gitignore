@@ -1,6 +1,12 @@
 # Ignore all PNG files
 *.png
 
+# excpet the images for README.md
+!images/*.png
+
+# Ignore .drawio files
+*.drawio
+
 # Other ignore rules can go here
 # For example:
 # Ignore all log files
@@ -22,7 +28,13 @@ data - original/
 processed_data/
 
 # Ignore the helper functions
-helper/
+helper/*
+
+# unignore helper/
+!helper/
+
+# Except createDataSplit.py
+!helper/createDataSplit.py
 
 # Ignore all .pt files
 *.pt

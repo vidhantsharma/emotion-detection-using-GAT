@@ -90,7 +90,7 @@ class FacialLandmarkDataset(Dataset):
             face = self.face_detector(image)
             if face is None:
                 # If no face is detected, create a zero tensor of the expected size
-                face = torch.zeros(1, 640, 480)
+                face = torch.zeros(1, 224, 224)
             else:
                 face = face.squeeze(0)  # Remove batch dimension
 
@@ -98,6 +98,6 @@ class FacialLandmarkDataset(Dataset):
             image = self.transform(face)
         else:
             # If image file doesn't exist, create a zero tensor
-            image = torch.zeros(1, 640, 480)
+            image = torch.zeros(1, 224, 224)
         
         return image, features, edge_index, label

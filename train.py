@@ -10,14 +10,15 @@ import torch
 # Define a function to handle argument parsing
 def parse_args():
     parser = argparse.ArgumentParser(description='Utility script with visualization options')
-    parser.add_argument('--data_path', type=str, required=False, default=r"data")
+    parser.add_argument('--data_path', type=str, required=False, default=r"data", help="path where images are stored")
     parser.add_argument('--viz', action='store_true', help='Enable visualization of the process')
     parser.add_argument('--num_nodes', type=int, required=False, default=68, help="number of landmarks")
     parser.add_argument('--num_classes', type=int, required=False, default=6, help="number of emotions")
-    parser.add_argument('--store_path', type=str, required=False, default=r"processed_data")
+    parser.add_argument('--store_path', type=str, required=False, default=r"processed_data", help="path to store processed files")
     parser.add_argument('--batch_size', type=int, required=False, default=8)
     parser.add_argument('--preprocess_data', type=bool, required=False, default=False, help="keep true if you want to preprocess the data")
     parser.add_argument('--shuffle', type=bool, required=False, default=True)
+    parser.add_argument('--patience', type=int, required=False, default=5, help="patience for early stopping")
     
     args = parser.parse_args()
     return args
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     # defining optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # defining early_stopping criteria
-    early_stopping = EarlyStopping(patience=5, verbose=True)
+    early_stopping = EarlyStopping(patience=args.patience, verbose=True)
 
     try:
         for epoch in range(50):  # Run for a number of epochs

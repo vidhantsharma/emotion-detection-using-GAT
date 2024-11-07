@@ -63,7 +63,7 @@ class EmotionClassifier(nn.Module):
         )
         
         # Graph Network (Multi-Head GAT)
-        self.gat1 = GATConv(2, gat_out_dim, heads=4, concat=True)
+        self.gat1 = GATConv(3, gat_out_dim, heads=4, concat=True)
         self.gat2 = GATConv(gat_out_dim * 4, gat_out_dim, heads=4, concat=True)
         
         # Dropout for regularization
@@ -76,7 +76,7 @@ class EmotionClassifier(nn.Module):
         # Image features through Hourglass network
         x = self.initial_conv(image)
         image_features = self.hourglass(x)
-        image_features = F.adaptive_max_pool2d(image_features, (1, 1)).view(image_features.size(0), -1)
+        image_features = F.adaptive_avg_pool2d(image_features, (1, 1)).view(image_features.size(0), -1)
         # Process each item in the batch separately for GAT
         gat_outputs = []
         for i in range(landmarks.size(0)):

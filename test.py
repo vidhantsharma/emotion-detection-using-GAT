@@ -1,7 +1,9 @@
 import torch
 import argparse
-from sklearn.metrics import confusion_matrix, f1_score  # Import confusion matrix and F1 score
+from sklearn.metrics import confusion_matrix, f1_score
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from src.dataloader import FacialLandmarkDataloader
 from src.model import EmotionClassifier
 from tqdm import tqdm
@@ -10,7 +12,7 @@ from tqdm import tqdm
 def parse_args():
     parser = argparse.ArgumentParser(description='Testing script for Emotion Classifier')
     parser.add_argument('--data_path', type=str, required=False, default=r"data")
-    parser.add_argument('--model_path', type=str, required=False, default='final_model.pt', help='trained model path')
+    parser.add_argument('--model_path', type=str, required=False, default='best_model.pt', help='trained model path')
     parser.add_argument('--viz', action='store_true', help='Enable visualization of the process')
     parser.add_argument('--num_nodes', type=int, required=False, default=68)
     parser.add_argument('--num_classes', type=int, required=False, default=6)
@@ -21,6 +23,16 @@ def parse_args():
     
     args = parser.parse_args()
     return args
+
+def plot_confusion_matrix(conf_matrix, class_names):
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False, 
+                xticklabels=class_names, yticklabels=class_names)
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    plt.title('Confusion Matrix')
+    plt.savefig("confusion_matrix.png")  # Save the image
+    plt.show()  # Display the image
 
 if __name__ == "__main__":
     args = parse_args()
@@ -79,3 +91,7 @@ if __name__ == "__main__":
     print("Confusion Matrix:")
     print(conf_matrix)
     print(f'F1 Score: {f1:.2f}')
+
+    # Plot confusion matrix as an image
+    class_names = [f"Class {i}" for i in range(1, args.num_classes + 1)]
+    plot_confusion_matrix(conf_matrix, class_names)
